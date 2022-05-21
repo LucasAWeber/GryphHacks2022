@@ -2,7 +2,7 @@ import os
 import discord
 from discord.ext import commands
 from discord.ext import tasks
-TOKEN = ('OTc3MzU2MDk1ODYzNTMzNjU4.GmtZ4z.tkzsNvqioKhr61AeUm8IwbGg_bYEs0WLcR3HNI')
+TOKEN = ('insert_token_here')
 
 client = discord.Client()
 client = commands.Bot(command_prefix=".")
