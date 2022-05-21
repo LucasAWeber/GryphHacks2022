@@ -4,3 +4,5 @@
 - Lucas Weber
 - Jonas Matulis
 - Thomas Hearn
+## Join the Discordle Discord server!
+- https://discord.gg/bypsJDVKEk
