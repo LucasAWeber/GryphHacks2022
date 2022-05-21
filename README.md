@@ -1,4 +1,4 @@
-![Discordle](https://github.com/[LucasAWeber]/[GryphHacks2022]/Discordle.png?raw=true)
+![Discordle](https://github.com/LucasAWeber/GryphHacks2022/Discordle.png?raw=true)
 # GryphHacks2022
 ## Team members
 - Lucas Weber
