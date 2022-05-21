@@ -4,5 +4,5 @@
 - Lucas Weber
 - Jonas Matulis
 - Thomas Hearn
-## Join the Discordle Discord server!
+## Join the Discordle Discord server to test out the bot!
 - https://discord.gg/bypsJDVKEk
