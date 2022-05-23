@@ -34,7 +34,7 @@ discordle_channel = None
 
 
 # should loop every 24 hours and send msg plus change word hopefully
-@tasks.loop(hours=0.1)
+@tasks.loop(hours=24.0)
 async def new_word():
     # saves secret word which changes daily
     # secretWord = discordle_words[random.randrange(1, len(discordle_words))]
@@ -58,7 +58,10 @@ async def new_word():
     for i in range(len(servers)):
         print(servers[i])
         cur_server = servers[i][:-3]
-        channel_file = open(f"{cur_server}_channel.txt", "r+")
+        try:
+          channel_file = open(f"{cur_server}_channel.txt", "r+")
+        except:
+          return
         channel_id = channel_file.readline()
         print(channel_id)
         channel = client.get_channel(int(channel_id))
@@ -79,12 +82,12 @@ async def on_ready():
 @client.event
 async def on_message(message):
     message_author = message.author.name
-    present = False
     global solved
     global secretWord
     global solver
     global discordle_channel
     global lives
+    
     solved_return = False
     server_in_list = False
     list = []
@@ -98,7 +101,7 @@ async def on_message(message):
         f.write(f'{server} 0\n')
         f.close()
         file = f'{server}_channel.txt'
-        f = open(file, "r+")
+        f = open(file, "w+")
         if (os.stat(file).st_size == 0):
             f.write(str(message.channel.id))
         await message.channel.send("Discordle is enabled in this channel!")
@@ -124,14 +127,13 @@ async def on_message(message):
             for i in range(loop):
                 returnString = returnString + f'{i+1}. {lines[i]}'
             await message.channel.send(f'```{returnString}```')
-        lines.close()
         return
     #if (message.content == "!setchannel"):
     #discordle_channel = message.channel
     #return
     if (message.content == "!help"):
         await message.channel.send(
-            "```Discordle is Discords very own competitive/collaborative game of Wordle! \n!help - Displays help message with brief info on Discordle \n!leaderboard - displays the top 10 Discordle users in the server```"
+            "```Discordle is Discords very own competitive/collaborative game of Wordle! \n!help - Displays help message with brief info on Discordle \n!start - command to start the daily game of Discordle in the desired channel \n!leaderboard - Displays the top 10 Discordle users in the server\n!guess <word> - Guess <word> to see if it's today's Discordle ```"
         )
         return
     if (not message.content.startswith("!guess")):
@@ -213,29 +215,31 @@ async def on_message(message):
         )
         f = open("servers.txt", "r+")
         server_lines = f.readlines()
+        print("SOMEHTING")
         for i in range(len(server_lines)):
           if(server_lines[i][:-3].strip() == server):
-            replace_line("servers.txt", i, f'{server} 1\n')
-            return          
+            replace_line("servers.txt", i, f'{server} 1\n')         
         f.close()
         lineNum = -1
-        server = message.guild.name.strip(' ')
         file = f'{server}_leaderboard.txt'
         f = open(file, "r+")
         Lines = f.readlines()
-        f.close()
+        present = False
         for line in Lines:
             lineNum = lineNum + 1
             if (line[:-3] == message.author.name):
                 print(f"{line[:-3]} = {message.author.name}")
-                replace_line(file, lineNum,
-                             f"{line[:-2]}{int(line[-2]) + 1}\n")
+                replace_line(file, lineNum, f"{line[:-2]}{int(line[-2]) + 1}\n")
                 present = True
-                return
+                print("present = true")
+                return   
+        f.close()
         if (not present):
+            print("present = false")
             f = open(file, 'a')
-            f.write(f"{message.author.name} {1}\n")
+            f.write(f"{message.author.name} 1\n")
             f.close()
+        print(server)
     else:
         if (lives[message_author] > 4):
             await message.channel.send(
@@ -282,30 +286,6 @@ def sort_file(file):
     for x in range(line_num):
         f.write(f'{list[x]}')
     f.close()
-
-
-# LEADERBOARD
-@client.command()
-async def add(ctx, *, newword):
-    # ADD NEW PERSON TO LEADER BOARD
-    server = ctx.guild.name.strip(' ')
-    file = f'{server}_words.txt'
-    f = open(file, "r+")
-    Lines = f.readlines()
-    for line in Lines:
-        if (line[:-3] == newword):
-            line[-1] = int(line[-1]) + 1
-            f.close()
-            return
-    f.close()
-    print(newword)
-    f = open(file, "a")
-    f.write(newword.strip())
-    f.write('\n')
-    f.close()
-    newword.strip()
-    await ctx.channel.send('Word added')
-    return
 
 
 keep_alive()
