@@ -34,7 +34,7 @@ discordle_channel = None
 
 
 # should loop every 24 hours and send msg plus change word hopefully
-@tasks.loop(hours=24.0)
+@tasks.loop(hours=0.1)
 async def new_word():
     # saves secret word which changes daily
     # secretWord = discordle_words[random.randrange(1, len(discordle_words))]
@@ -52,18 +52,20 @@ async def new_word():
     else:
         daily_word_num = 0
 
-    server_file = open("servers.txt", "r")
+    server_file = open("servers.txt", "r+")
     servers = server_file.readlines()
     print('new_word is running')
     for i in range(len(servers)):
         print(servers[i])
-        cur_server = servers[i].strip()
-        channel_file = open(f"{cur_server}_channel.txt", "r")
+        cur_server = servers[i][:-3]
+        channel_file = open(f"{cur_server}_channel.txt", "r+")
         channel_id = channel_file.readline()
         print(channel_id)
         channel = client.get_channel(int(channel_id))
-        await channel.send(f'New daily Discordle today is ready')
+        await channel.send(f':date: New daily Discordle is ready! :date:')
         channel_file.close()
+    for i in range(len(servers)):
+      replace_line("servers.txt", i, f'{servers[i][:-3]} 0\n')
     server_file.close()
 
 
@@ -83,6 +85,7 @@ async def on_message(message):
     global solver
     global discordle_channel
     global lives
+    solved_return = False
     server_in_list = False
     list = []
     server = message.guild.name.strip(' ')
@@ -95,7 +98,7 @@ async def on_message(message):
         f.write(f'{server} 0\n')
         f.close()
         file = f'{server}_channel.txt'
-        f = open(file, "w+")
+        f = open(file, "r+")
         if (os.stat(file).st_size == 0):
             f.write(str(message.channel.id))
         await message.channel.send("Discordle is enabled in this channel!")
@@ -121,6 +124,7 @@ async def on_message(message):
             for i in range(loop):
                 returnString = returnString + f'{i+1}. {lines[i]}'
             await message.channel.send(f'```{returnString}```')
+        lines.close()
         return
     #if (message.content == "!setchannel"):
     #discordle_channel = message.channel
@@ -132,10 +136,16 @@ async def on_message(message):
         return
     if (not message.content.startswith("!guess")):
         return
-    if solved:
-        await message.channel.send(
-            f'Today\'s Discordle has already been solved by {solver} :tada:')
+    fs = open("servers.txt", "r")
+    server_statuses = fs.readlines()
+    for i in range(len(server_statuses)):
+      if(server_statuses[i][:-3] == server and int(server_statuses[i][-2]) == 1):
+        await message.channel.send(f'Today\'s Discordle has already been solved by {solver} :tada:')
+        solved_return = True 
         return
+    fs.close()
+    if solved_return:
+      return
 
     string = message.content[7:].lower()
     print(f'{string} is the guessed word\n{secretWord} is the secret word\n')
@@ -201,10 +211,13 @@ async def on_message(message):
         await message.channel.send(
             f'Today\'s Discordle has been solved by {message.author.mention} :tada:'
         )
-        f = open("servers.txt", "w+")
+        f = open("servers.txt", "r+")
         server_lines = f.readlines()
         for i in range(len(server_lines)):
-          if(server_lines[:-1] == )
+          if(server_lines[i][:-3].strip() == server):
+            replace_line("servers.txt", i, f'{server} 1\n')
+            return          
+        f.close()
         lineNum = -1
         server = message.guild.name.strip(' ')
         file = f'{server}_leaderboard.txt'
@@ -296,6 +309,4 @@ async def add(ctx, *, newword):
 
 
 keep_alive()
-client.run(
-    'insert_token_here')
-
+client.run('insert_token_here')
